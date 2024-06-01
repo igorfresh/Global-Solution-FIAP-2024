@@ -1,27 +1,27 @@
-package br.com.fiap.seacare.model;
+// package br.com.fiap.seacare.model;
 
-import java.time.LocalDate;
+// import java.time.LocalDate;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.Data;
+// import jakarta.persistence.Entity;
+// import jakarta.persistence.GeneratedValue;
+// import jakarta.persistence.GenerationType;
+// import jakarta.persistence.Id;
+// import lombok.Data;
 
-@Data
-@Entity
-public class Report {
+// @Data
+// @Entity
+// public class Report {
     
-    @Id @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+//     @Id @GeneratedValue(strategy = GenerationType.AUTO)
+//     private Long id;
     
-    private String description;
+//     private String description;
 
-    private LocalDate date;
+//     private LocalDate date;
 
-    private User idUser;
+//     private UserSC idUser;
 
-    private Location location;
+//     private Location location;
 
-    private Artifact artifact;
-}
+//     private Artifact artifact;
+// }

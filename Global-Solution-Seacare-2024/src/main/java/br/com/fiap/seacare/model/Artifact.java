@@ -15,5 +15,5 @@ public class Artifact {
 
     private String name;
 
-    private String descricao;
+    private String description;
 }
