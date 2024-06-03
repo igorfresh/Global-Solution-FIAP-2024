@@ -7,6 +7,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,8 +26,13 @@ public class Report {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     
+    @NotBlank(message = "{report.description.notblank}")
+    @Size(max = 400, message = "{report.description.size}")
     private String description;
 
+
+    @NotNull(message = "{report.date.notnull}")
+    @PastOrPresent(message = "{report.date.pastorpresent}")
     private LocalDate date;
 
     @ManyToOne
