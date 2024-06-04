@@ -1,7 +1,13 @@
 package br.com.fiap.seacare.model;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import java.time.LocalDate;
 
+import org.springframework.hateoas.EntityModel;
+
+import br.com.fiap.seacare.controller.ReportController;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -43,5 +49,15 @@ public class Report {
     
     public Report(Long id) {
         this.id = id;
+    }
+
+    public EntityModel<Report> toEntityModel() {
+        return EntityModel.of(
+            this,
+            linkTo(methodOn(ReportController.class).show(id)).withSelfRel(),
+            linkTo(methodOn(ReportController.class).destroy(id)).withRel("delete"),
+            linkTo(methodOn(ReportController.class).index(null, null)).withRel("contents")
+
+        );
     }
 }

@@ -1,7 +1,5 @@
 package br.com.fiap.seacare.controller;
 
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,11 +20,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import br.com.fiap.seacare.model.Report;
 import br.com.fiap.seacare.model.ReportedArtifacts;
 import br.com.fiap.seacare.repository.ReportedArtifactsRepository;
 import jakarta.validation.Valid;
@@ -37,37 +36,47 @@ public class ReportedArtifactController {
     @Autowired
     ReportedArtifactsRepository repository;
 
+    @Autowired
+    PagedResourcesAssembler<ReportedArtifacts> pageAssembler;
+
     @GetMapping
-    public Page<ReportedArtifacts> index(
-        @RequestParam(required = false) Report report,
-        @PageableDefault(size = 3, sort = "report", direction = Direction.ASC) Pageable pageable
+    public PagedModel<EntityModel<ReportedArtifacts>> index(
+        @RequestParam(required = false) Long id,
+        @PageableDefault(size = 3, sort = "id", direction = Direction.ASC) Pageable pageable
     ) {
-        return repository.findAll(pageable);
+        Page<ReportedArtifacts> page = null;
+        page = repository.findAll(pageable);
+        return pageAssembler.toModel(page);
     }
 
     @PostMapping
-    public ReportedArtifacts create(@RequestBody @Valid ReportedArtifacts reportedArtifacts) {
-        log.info("cadastrando artefatos reportados {}", reportedArtifacts);
-        return repository.save(reportedArtifacts);
+    public ResponseEntity<ReportedArtifacts> create(@RequestBody @Valid ReportedArtifacts reportedArtifacts) {
+        repository.save(reportedArtifacts);
+
+        return ResponseEntity
+        .created(reportedArtifacts.toEntityModel().getRequiredLink("self").toUri())
+        .body(reportedArtifacts);
 
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<ReportedArtifacts> show (@PathVariable Long id) {
-        log.info("buscando artefatos reportados por id {}", id);
-        return repository
-        .findById(id)
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
+    public EntityModel<ReportedArtifacts> show (@PathVariable Long id) {
+        var reportedArtifacts = repository.findById(id).orElseThrow(
+            () -> new IllegalArgumentException("denúncia não encontrada")
+        );
+
+        return reportedArtifacts.toEntityModel();
     }
 
     @DeleteMapping("{id}")
-    @ResponseStatus(NO_CONTENT)
-    public void destroy(@PathVariable Long id) {
-        log.info("Apagando artefatos reportados com id {}");
-        verifyExistingArtifact(id);
+    public ResponseEntity<Object> destroy(@PathVariable Long id) {
+        repository.findById(id).orElseThrow(
+            () -> new IllegalArgumentException("denúncia não encontrada")
+        );
 
         repository.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("{id}")

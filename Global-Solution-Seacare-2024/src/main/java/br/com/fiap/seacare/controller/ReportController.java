@@ -1,7 +1,5 @@
 package br.com.fiap.seacare.controller;
 
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 import java.time.LocalDate;
 
 import org.slf4j.Logger;
@@ -11,6 +9,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,7 +22,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -38,37 +38,47 @@ public class ReportController {
     @Autowired
     ReportRepository repository;
 
+   @Autowired
+    PagedResourcesAssembler<Report> pageAssembler;
+
     @GetMapping
-    public Page<Report> index(
+    public PagedModel<EntityModel<Report>> index(
         @RequestParam(required = false) LocalDate date,
         @PageableDefault(size = 3, sort = "date", direction = Direction.ASC) Pageable pageable
     ) {
-        return repository.findAll(pageable);
+        Page<Report> page = null;
+        page = repository.findAll(pageable);
+        return pageAssembler.toModel(page);
     }
 
     @PostMapping
-    public Report create(@RequestBody @Valid Report report) {
-        log.info("cadastrando denúncia {}", report);
-        return repository.save(report);
+    public ResponseEntity<Report> create(@RequestBody @Valid Report report) {
+        repository.save(report);
+
+        return ResponseEntity
+        .created(report.toEntityModel().getRequiredLink("self").toUri())
+        .body(report);
 
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Report> show (@PathVariable Long id) {
-        log.info("buscando denúncia por id {}", id);
-        return repository
-        .findById(id)
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
+    public EntityModel<Report> show (@PathVariable Long id) {
+        var location = repository.findById(id).orElseThrow(
+            () -> new IllegalArgumentException("denúncia não encontrada")
+        );
+
+        return location.toEntityModel();
     }
 
     @DeleteMapping("{id}")
-    @ResponseStatus(NO_CONTENT)
-    public void destroy(@PathVariable Long id) {
-        log.info("Apagando denúncia com id {}");
-        verifyExistingReport(id);
+    public ResponseEntity<Object> destroy(@PathVariable Long id) {
+        repository.findById(id).orElseThrow(
+            () -> new IllegalArgumentException("denúncia não encontrada")
+        );
 
         repository.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("{id}")

@@ -1,5 +1,11 @@
 package br.com.fiap.seacare.model;
 
+import org.springframework.hateoas.EntityModel;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
+import br.com.fiap.seacare.controller.ArtifactController;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -31,5 +37,15 @@ public class Artifact {
 
     public Artifact(Long id) {
         this.id = id;
+    }
+
+    public EntityModel<Artifact> toEntityModel() {
+        return EntityModel.of(
+            this,
+            linkTo(methodOn(ArtifactController.class).show(id)).withSelfRel(),
+            linkTo(methodOn(ArtifactController.class).destroy(id)).withRel("delete"),
+            linkTo(methodOn(ArtifactController.class).index(null, null)).withRel("contents")
+
+        );
     }
 }

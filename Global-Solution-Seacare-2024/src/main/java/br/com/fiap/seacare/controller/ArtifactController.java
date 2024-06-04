@@ -1,7 +1,5 @@
 package br.com.fiap.seacare.controller;
 
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -36,37 +36,47 @@ public class ArtifactController {
     @Autowired
     ArtifactRepository repository;
 
+    @Autowired
+    PagedResourcesAssembler<Artifact> pageAssembler;
+
     @GetMapping
-    public Page<Artifact> index(
+    public PagedModel<EntityModel<Artifact>> index(
         @RequestParam(required = false) String name,
         @PageableDefault(size = 3, sort = "name", direction = Direction.ASC) Pageable pageable
     ) {
-        return repository.findAll(pageable);
+        Page<Artifact> page = null;
+        page = repository.findAll(pageable);
+        return pageAssembler.toModel(page);
     }
 
     @PostMapping
-    public Artifact create(@RequestBody @Valid Artifact artifact) {
-        log.info("cadastrando artefato {}", artifact);
-        return repository.save(artifact);
+    public ResponseEntity<Artifact> create(@RequestBody @Valid Artifact artifact) {
+        repository.save(artifact);
+
+        return ResponseEntity
+        .created(artifact.toEntityModel().getRequiredLink("self").toUri())
+        .body(artifact);
 
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Artifact> show (@PathVariable Long id) {
-        log.info("buscando artefato por id {}", id);
-        return repository
-        .findById(id)
-        .map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
+    public EntityModel<Artifact> show (@PathVariable Long id) {
+        var artifact = repository.findById(id).orElseThrow(
+            () -> new IllegalArgumentException("artefato não encontrado")
+        );
+
+        return artifact.toEntityModel();
     }
 
     @DeleteMapping("{id}")
-    @ResponseStatus(NO_CONTENT)
-    public void destroy(@PathVariable Long id) {
-        log.info("Apagando artefato com id {}");
-        verifyExistingArtifact(id);
+    public ResponseEntity<Object> destroy(@PathVariable Long id) {
+        repository.findById(id).orElseThrow(
+            () -> new IllegalArgumentException("artefato não encontrado")
+        );
 
         repository.deleteById(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("{id}")
