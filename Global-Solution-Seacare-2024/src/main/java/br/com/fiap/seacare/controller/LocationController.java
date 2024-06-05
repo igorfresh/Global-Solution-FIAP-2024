@@ -25,10 +25,15 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.fiap.seacare.model.Location;
 import br.com.fiap.seacare.repository.LocationRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("location")
+@Tag(name = "Localização", description = "Localização da denúncia")
 public class LocationController {
     
     Logger log = LoggerFactory.getLogger(getClass());
@@ -40,6 +45,14 @@ public class LocationController {
     PagedResourcesAssembler<Location> pageAssembler;
 
     @GetMapping
+    @Operation(
+        summary = "Listar Localizações",
+        description = "Retorna uma lista paginada de localizações."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Localizações listadas"),
+        @ApiResponse(responseCode = "404", description = "Localizações não encontradas")
+    })
     public PagedModel<EntityModel<Location>> index(
         @RequestParam(required = false) String uf,
         @PageableDefault(size = 3, sort = "uf", direction = Direction.ASC) Pageable pageable
@@ -50,6 +63,14 @@ public class LocationController {
     }
 
     @PostMapping
+    @Operation(
+        summary = "Cadastrar Localização",
+        description = "Cadastra uma nova localização."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Localização criada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Solicitação inválida")
+    })
     public ResponseEntity<Location> create(@RequestBody @Valid Location location) {
         repository.save(location);
 
@@ -60,6 +81,14 @@ public class LocationController {
     }
 
     @GetMapping("{id}")
+    @Operation(
+        summary = "Buscar Localização",
+        description = "Recupera uma localização pelo ID."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Localização encontrada"),
+        @ApiResponse(responseCode = "404", description = "Localização não encontrada")
+    })
     public EntityModel<Location> show (@PathVariable Long id) {
         var location = repository.findById(id).orElseThrow(
             () -> new IllegalArgumentException("localização não encontrado")
@@ -69,6 +98,14 @@ public class LocationController {
     }
 
     @DeleteMapping("{id}")
+    @Operation(
+        summary = "Excluir Localização",
+        description = "Remove uma localização pelo ID."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Localização excluída com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Localização não encontrada")
+    })
     public ResponseEntity<Object> destroy(@PathVariable Long id) {
         repository.findById(id).orElseThrow(
             () -> new IllegalArgumentException("localização não encontrado")
@@ -80,6 +117,15 @@ public class LocationController {
     }
 
     @PutMapping("{id}")
+    @Operation(
+        summary = "Atualizar Localização",
+        description = "Atualiza uma localização existente pelo ID."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Localização atualizada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Localização não encontrada"),
+        @ApiResponse(responseCode = "400", description = "Solicitação inválida")
+    })
     public Location update(@PathVariable Long id, @RequestBody Location location) {
         log.info("atualizando localização com id {}", id, location);
 

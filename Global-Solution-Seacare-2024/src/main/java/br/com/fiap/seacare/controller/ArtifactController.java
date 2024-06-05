@@ -25,10 +25,15 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.fiap.seacare.model.Artifact;
 import br.com.fiap.seacare.repository.ArtifactRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("artifact")
+@Tag(name = "Artefato", description = "Artefatos encontrados nas praias")
 public class ArtifactController {
     
     Logger log = LoggerFactory.getLogger(getClass());
@@ -40,6 +45,14 @@ public class ArtifactController {
     PagedResourcesAssembler<Artifact> pageAssembler;
 
     @GetMapping
+    @Operation(
+        summary = "Listar Artefatos",
+        description = "Retorna uma lista paginada de artefatos."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Artefatos listados"),
+        @ApiResponse(responseCode = "404", description = "Artefatos não encontrados")
+    })
     public PagedModel<EntityModel<Artifact>> index(
         @RequestParam(required = false) String name,
         @PageableDefault(size = 3, sort = "name", direction = Direction.ASC) Pageable pageable
@@ -50,6 +63,14 @@ public class ArtifactController {
     }
 
     @PostMapping
+    @Operation(
+        summary = "Cadastrar Artefato",
+        description = "Cadastra um novo artefato."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Artefato criado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Solicitação inválida")
+    })
     public ResponseEntity<Artifact> create(@RequestBody @Valid Artifact artifact) {
         repository.save(artifact);
 
@@ -60,6 +81,14 @@ public class ArtifactController {
     }
 
     @GetMapping("{id}")
+    @Operation(
+        summary = "Buscar Artefato",
+        description = "Recupera um artefato pelo ID."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Artefato encontrado"),
+        @ApiResponse(responseCode = "404", description = "Artefato não encontrado")
+    })
     public EntityModel<Artifact> show (@PathVariable Long id) {
         var artifact = repository.findById(id).orElseThrow(
             () -> new IllegalArgumentException("artefato não encontrado")
@@ -69,6 +98,14 @@ public class ArtifactController {
     }
 
     @DeleteMapping("{id}")
+    @Operation(
+        summary = "Excluir Artefato",
+        description = "Remove um artefato pelo ID."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Artefato excluído com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Artefato não encontrado")
+    })
     public ResponseEntity<Object> destroy(@PathVariable Long id) {
         repository.findById(id).orElseThrow(
             () -> new IllegalArgumentException("artefato não encontrado")
@@ -80,6 +117,15 @@ public class ArtifactController {
     }
 
     @PutMapping("{id}")
+    @Operation(
+        summary = "Atualizar Artefato",
+        description = "Atualiza um artefato existente pelo ID."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Artefato atualizado com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Artefato não encontrado"),
+        @ApiResponse(responseCode = "400", description = "Solicitação inválida")
+    })
     public Artifact update(@PathVariable Long id, @RequestBody Artifact artifact) {
         log.info("atualizando artefato com id {}", id, artifact);
 

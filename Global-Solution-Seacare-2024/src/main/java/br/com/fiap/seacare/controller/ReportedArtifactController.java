@@ -25,10 +25,15 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.fiap.seacare.model.ReportedArtifacts;
 import br.com.fiap.seacare.repository.ReportedArtifactsRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("reportedArtifacts")
+@Tag(name = "Artefatos Reportados", description = "Artefatos inseridos na denúncia pelos usuários")
 public class ReportedArtifactController {
     
     Logger log = LoggerFactory.getLogger(getClass());
@@ -40,6 +45,14 @@ public class ReportedArtifactController {
     PagedResourcesAssembler<ReportedArtifacts> pageAssembler;
 
     @GetMapping
+    @Operation(
+        summary = "Listar Artefatos Reportados",
+        description = "Retorna uma lista paginada de artefatos reportados."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Artefatos reportados listados"),
+        @ApiResponse(responseCode = "404", description = "Artefatos reportados não encontrados")
+    })
     public PagedModel<EntityModel<ReportedArtifacts>> index(
         @RequestParam(required = false) Long id,
         @PageableDefault(size = 3, sort = "id", direction = Direction.ASC) Pageable pageable
@@ -50,6 +63,14 @@ public class ReportedArtifactController {
     }
 
     @PostMapping
+    @Operation(
+        summary = "Cadastrar Artefato Reportado",
+        description = "Cadastra um novo artefato reportado."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Artefato reportado criado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Solicitação inválida")
+    })
     public ResponseEntity<ReportedArtifacts> create(@RequestBody @Valid ReportedArtifacts reportedArtifacts) {
         repository.save(reportedArtifacts);
 
@@ -60,6 +81,14 @@ public class ReportedArtifactController {
     }
 
     @GetMapping("{id}")
+    @Operation(
+        summary = "Buscar Artefato Reportado",
+        description = "Recupera um artefato reportado pelo ID."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Artefato reportado encontrado"),
+        @ApiResponse(responseCode = "404", description = "Artefato reportado não encontrado")
+    })
     public EntityModel<ReportedArtifacts> show (@PathVariable Long id) {
         var reportedArtifacts = repository.findById(id).orElseThrow(
             () -> new IllegalArgumentException("denúncia não encontrada")
@@ -69,6 +98,14 @@ public class ReportedArtifactController {
     }
 
     @DeleteMapping("{id}")
+    @Operation(
+        summary = "Excluir Artefato Reportado",
+        description = "Remove um artefato reportado pelo ID."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Artefato reportado excluído com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Artefato reportado não encontrado")
+    })
     public ResponseEntity<Object> destroy(@PathVariable Long id) {
         repository.findById(id).orElseThrow(
             () -> new IllegalArgumentException("denúncia não encontrada")
@@ -80,6 +117,15 @@ public class ReportedArtifactController {
     }
 
     @PutMapping("{id}")
+    @Operation(
+        summary = "Atualizar Artefato Reportado",
+        description = "Atualiza um artefato reportado existente pelo ID."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Artefato reportado atualizado com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Artefato reportado não encontrado"),
+        @ApiResponse(responseCode = "400", description = "Solicitação inválida")
+    })
     public ReportedArtifacts update(@PathVariable Long id, @RequestBody ReportedArtifacts reportedArtifacts) {
         log.info("atualizando artefatos reportados com id {}", id, reportedArtifacts);
 

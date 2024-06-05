@@ -27,10 +27,15 @@ import org.springframework.web.server.ResponseStatusException;
 
 import br.com.fiap.seacare.model.Report;
 import br.com.fiap.seacare.repository.ReportRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("report")
+@Tag(name = "Denúncia", description = "Denúncia feita por usuários")
 public class ReportController {
     
     Logger log = LoggerFactory.getLogger(getClass());
@@ -42,6 +47,14 @@ public class ReportController {
     PagedResourcesAssembler<Report> pageAssembler;
 
     @GetMapping
+    @Operation(
+        summary = "Listar Denúncias",
+        description = "Retorna uma lista paginada de denúncias."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Denúncias listadas"),
+        @ApiResponse(responseCode = "404", description = "Denúncias não encontradas")
+    })
     public PagedModel<EntityModel<Report>> index(
         @RequestParam(required = false) LocalDate date,
         @PageableDefault(size = 3, sort = "date", direction = Direction.ASC) Pageable pageable
@@ -52,6 +65,14 @@ public class ReportController {
     }
 
     @PostMapping
+    @Operation(
+        summary = "Cadastrar Denúncia",
+        description = "Cadastra uma nova denúncia."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Denúncia criada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Solicitação inválida")
+    })
     public ResponseEntity<Report> create(@RequestBody @Valid Report report) {
         repository.save(report);
 
@@ -62,6 +83,14 @@ public class ReportController {
     }
 
     @GetMapping("{id}")
+    @Operation(
+        summary = "Buscar Denúncia",
+        description = "Recupera uma denúncia pelo ID."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Denúncia encontrada"),
+        @ApiResponse(responseCode = "404", description = "Denúncia não encontrada")
+    })
     public EntityModel<Report> show (@PathVariable Long id) {
         var location = repository.findById(id).orElseThrow(
             () -> new IllegalArgumentException("denúncia não encontrada")
@@ -71,6 +100,14 @@ public class ReportController {
     }
 
     @DeleteMapping("{id}")
+    @Operation(
+        summary = "Excluir Denúncia",
+        description = "Remove uma denúncia pelo ID."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "204", description = "Denúncia excluída com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Denúncia não encontrada")
+    })
     public ResponseEntity<Object> destroy(@PathVariable Long id) {
         repository.findById(id).orElseThrow(
             () -> new IllegalArgumentException("denúncia não encontrada")
@@ -82,6 +119,15 @@ public class ReportController {
     }
 
     @PutMapping("{id}")
+    @Operation(
+        summary = "Atualizar Denúncia",
+        description = "Atualiza uma denúncia existente pelo ID."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Denúncia atualizada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Denúncia não encontrada"),
+        @ApiResponse(responseCode = "400", description = "Solicitação inválida")
+    })
     public Report update(@PathVariable Long id, @RequestBody Report report) {
         log.info("atualizando denúncia com id {}", id, report);
 
